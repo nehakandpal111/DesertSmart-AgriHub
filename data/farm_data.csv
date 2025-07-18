@@ -1,0 +1,5 @@
+farm_size,soil_moisture,wind_speed,sunlight_hours,irrigation_need,energy_usage
+2.5,35,12,10,180,22
+1.0,20,8,8,120,12
+3.0,40,15,12,200,28
+5.0,30,10,9,250,35

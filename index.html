@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DesertSmart AgriHub - AI-Powered Desert Agriculture & Energy Platform</title>
+    <meta name="description" content="AI-powered agricultural and energy solutions for desert environments. Smart irrigation, renewable energy, and community support.">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌵</text></svg>">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#F97316">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+    }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F9D084 0%, #F7C873 100%);
+            min-height: 100vh;
+            color: #7C4700;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #F9D084 0%, #B8860B 100%);
+            color: #fff;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px -1px rgba(184, 134, 11, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+        
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+        
+        .nav-menu a:hover {
+            opacity: 0.8;
+        }
+        
+        .lang-toggle {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .lang-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: #B8860B;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #7C4700;
+            color: #fff;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #fff;
+            color: #B8860B;
+            border: 2px solid #B8860B;
+        }
+        .btn-secondary:hover {
+            background: #F9D084;
+            color: #7C4700;
+        }
+        
+        .dashboard {
+            padding: 3rem 0;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-icon {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1F2937;
+        }
+        
+        .weather-card .card-icon {
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            color: white;
+        }
+        
+        .irrigation-card .card-icon {
+            background: linear-gradient(135deg, #06B6D4, #0891B2);
+            color: white;
+        }
+        
+        .crop-card .card-icon {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+        }
+        
+        .energy-card .card-icon {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+            color: white;
+        }
+        
+        .ai-card .card-icon {
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            color: white;
+        }
+        
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        
+        .metric:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-value {
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        .recommendation {
+            background: #F0F9FF;
+            border: 1px solid #0EA5E9;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .recommendation-title {
+            font-weight: 600;
+            color: #0369A1;
+            margin-bottom: 0.5rem;
+        }
+        
+        .tab-navigation {
+            display: flex;
+            border-bottom: 1px solid #E5E7EB;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: #6B7280;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        
+        .tab-btn.active {
+            color: #F97316;
+            border-bottom-color: #F97316;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+        
+        .energy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        
+        .energy-option {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            border: 1px solid #E5E7EB;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        
+        .energy-option:hover {
+            border-color: #F97316;
+            transform: translateY(-2px);
+        }
+        
+        .energy-option.selected {
+            border-color: #F97316;
+            background: #FFF7ED;
+        }
+        
+        .energy-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .energy-name {
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .energy-details {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-bottom: 1rem;
+        }
+        
+        .energy-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .loading-spinner.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #F97316;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-input {
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #F97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        .form-select {
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            background: white;
+            transition: border-color 0.3s;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: #F97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+        
+        .ai-results {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .result-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .result-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .result-title {
+            font-weight: 600;
+            color: #1F2937;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        
+        .result-item {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            border: 1px solid #E5E7EB;
+        }
+        
+        .result-label {
+            font-size: 0.875rem;
+            color: #6B7280;
+            margin-bottom: 0.25rem;
+        }
+        
+        .result-value {
+            font-weight: 600;
+            color: #1F2937;
+            font-size: 1.125rem;
+        }
+        
+        .mobile-menu {
+            display: none;
+        }
+        
+        .mobile-menu-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .offline-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #EF4444;
+            color: white;
+            padding: 0.5rem;
+            text-align: center;
+            font-weight: 500;
+            z-index: 100;
+            display: none;
+        }
+        
+        .offline-indicator.show {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .tab-navigation {
+                flex-wrap: wrap;
+            }
+            
+            .tab-btn {
+                flex: 1;
+                min-width: 50%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+            
+            .card {
+                padding: 1.5rem;
+            }
+            
+            .hero {
+                padding: 2rem 0;
+            }
+            
+            .dashboard {
+                padding: 2rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-indicator" id="offlineIndicator">
+        <span data-en="You're offline. Some features may not work properly." data-hi="आप ऑफलाइन हैं। कुछ सुविधाएं ठीक से काम नहीं कर सकती हैं।">You're offline. Some features may not work properly.</span>
+    </div>
+
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <span>🌵</span>
+                    <span data-en="DesertSmart AgriHub" data-hi="डेज़र्टस्मार्ट एग्रीहब">DesertSmart AgriHub</span>
+                </div>
+                
+                <nav class="nav-menu">
+                    <a href="#dashboard" data-en="Dashboard" data-hi="डैशबोर्ड">Dashboard</a>
+                    <a href="#ai-predictions" data-en="AI Predictions" data-hi="AI भविष्यवाणी">AI Predictions</a>
+                    <a href="#energy" data-en="Energy" data-hi="ऊर्जा">Energy</a>
+                    <a href="#crops" data-en="Crops" data-hi="फसल">Crops</a>
+                    <a href="#irrigation" data-en="Irrigation" data-hi="सिंचाई">Irrigation</a>
+                    <a href="#subsidies" data-en="Subsidies" data-hi="सब्सिडी">Subsidies</a>
+                    <a href="#community" data-en="Community" data-hi="समुदाय">Community</a>
+                </nav>
+                
+                <div class="lang-toggle">
+                    <button class="lang-btn active" onclick="setLanguage('en')">EN</button>
+                    <button class="lang-btn" onclick="setLanguage('hi')">हिं</button>
+                </div>
+                
+                <button class="mobile-menu-btn mobile-menu" onclick="toggleMobileMenu()">☰</button>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero" style="background: url('desert.jpg') center/cover no-repeat, linear-gradient(135deg, #F9D084 0%, #F7C873 100%); min-height: 400px; position: relative;">
+        <div style="background: rgba(255, 247, 237, 0.7); position: absolute; inset: 0;"></div>
+        <div class="container" style="position: relative; z-index: 1; text-shadow: 0 2px 8px #b8860b99;">
+            <h1 style="font-size: 3rem; font-weight: 800; color: #B8860B; margin-bottom: 1rem;">DesertSmart AgriHub</h1>
+            <p style="font-size: 1.5rem; color: #7C4700; margin-bottom: 2rem; max-width: 700px; margin-left: auto; margin-right: auto;">
+                AI-powered solutions for desert agriculture, irrigation, and sustainable energy. Empowering farmers to thrive in arid climates with real-time insights, community knowledge, and government support.
+            </p>
+            <div class="cta-buttons">
+                <a href="#ai-predictions" class="btn btn-primary" style="background: #B8860B; color: #fff; border: none;">Try AI Predictions</a>
+                <a href="#energy" class="btn btn-secondary" style="background: #fff; color: #B8860B; border: 2px solid #B8860B;">Energy Solutions</a>
+                <a href="#knowledge" class="btn btn-secondary" style="background: #fff; color: #B8860B; border: 2px solid #B8860B;">Knowledge Hub</a>
+            </div>
+        </div>
+    </section>
+
+    <main class="dashboard" id="dashboard">
+        <div class="container">
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="showTab('overview')" data-en="Overview" data-hi="अवलोकन">Overview</button>
+                <button class="tab-btn" onclick="showTab('ai-predictions')" data-en="AI Predictions" data-hi="AI भविष्यवाणी">AI Predictions</button>
+                <button class="tab-btn" onclick="showTab('energy')" data-en="Energy Solutions" data-hi="ऊर्जा समाधान">Energy Solutions</button>
+                <button class="tab-btn" onclick="showTab('irrigation')" data-en="Irrigation" data-hi="सिंचाई">Irrigation</button>
+                <button class="tab-btn" onclick="showTab('crops')" data-en="Crops" data-hi="फसल">Crops</button>
+                <button class="tab-btn" onclick="showTab('subsidies')" data-en="Subsidies" data-hi="सब्सिडी">Subsidies</button>
+                <button class="tab-btn" onclick="showTab('community')" data-en="Community" data-hi="समुदाय">Community</button>
+            </div>
+
+            <div id="overview" class="tab-content active">
+                <div class="dashboard-grid">
+                    <div class="card weather-card">
+                        <div class="card-header">
+                            <div class="card-icon">🌤️</div>
+                            <h3 class="card-title" data-en="Weather & Climate" data-hi="मौसम और जलवायु">Weather & Climate</h3>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Temperature" data-hi="तापमान">Temperature</span>
+                            <span class="metric-value" id="temperature">42°C</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Humidity" data-hi="नमी">Humidity</span>
+                            <span class="metric-value" id="humidity">15%</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Wind Speed" data-hi="हवा की गति">Wind Speed</span>
+                            <span class="metric-value" id="windSpeed">12 km/h</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Solar Irradiance" data-hi="सौर विकिरण">Solar Irradiance</span>
+                            <span class="metric-value" id="solarIrradiance">850 W/m²</span>
+                        </div>
+                        <div class="recommendation">
+                            <div class="recommendation-title" data-en="Weather Advisory" data-hi="मौसम सलाह">Weather Advisory</div>
+                            <p data-en="Excellent conditions for solar energy generation. High wind speeds suitable for wind turbines." data-hi="सौर ऊर्जा उत्पादन के लिए उत्कृष्ट स्थितियां। पवन टर्बाइन के लिए उपयुक्त तेज़ हवा।">
+                                Excellent conditions for solar energy generation. High wind speeds suitable for wind turbines.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card ai-card">
+                        <div class="card-header">
+                            <div class="card-icon">🤖</div>
+                            <h3 class="card-title" data-en="AI Insights" data-hi="AI अंतर्दृष्टि">AI Insights</h3>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Irrigation Efficiency" data-hi="सिंचाई दक्षता">Irrigation Efficiency</span>
+                            <span class="metric-value" id="irrigationEfficiency">87%</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Energy Optimization" data-hi="ऊर्जा अनुकूलन">Energy Optimization</span>
+                            <span class="metric-value" id="energyOptimization">92%</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Crop Yield Prediction" data-hi="फसल उत्पादन भविष्यवाणी">Crop Yield Prediction</span>
+                            <span class="metric-value" id="yieldPrediction">+25%</span>
+                        </div>
+                        <div class="recommendation">
+                            <div class="recommendation-title" data-en="AI Recommendation" data-hi="AI सिफारिश">AI Recommendation</div>
+                            <p data-en="Optimal irrigation at 6:00 AM. Install 5kW solar system for energy independence." data-hi="सुबह 6:00 बजे अनुकूलित सिंचाई। ऊर्जा स्वतंत्रता के लिए 5kW सौर सिस्टम स्थापित करें।">
+                                Optimal irrigation at 6:00 AM. Install 5kW solar system for energy independence.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="card energy-card">
+                        <div class="card-header">
+                            <div class="card-icon">⚡</div>
+                            <h3 class="card-title" data-en="Energy Status" data-hi="ऊर्जा स्थिति">Energy Status</h3>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Solar Generation" data-hi="सौर उत्पादन">Solar Generation</span>
+                            <span class="metric-value" id="solarGeneration">25 kWh</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Wind Generation" data-hi="पवन उत्पादन">Wind Generation</span>
+                            <span class="metric-value" id="windGeneration">8 kWh</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Energy Consumption" data-hi="ऊर्जा खपत">Energy Consumption</span>
+                            <span class="metric-value" id="energyConsumption">18 kWh</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Grid Independence" data-hi="ग्रिड स्वतंत्रता">Grid Independence</span>
+                            <span class="metric-value" id="gridIndependence">85%</span>
+                        </div>
+                    </div>
+
+                    <div class="card irrigation-card">
+                        <div class="card-header">
+                            <div class="card-icon">💧</div>
+                            <h3 class="card-title" data-en="Smart Irrigation" data-hi="स्मार्ट सिंचाई">Smart Irrigation</h3>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Soil Moisture" data-hi="मिट्टी की नमी">Soil Moisture</span>
+                            <span class="metric-value" id="soilMoisture">35%</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Water Usage Today" data-hi="आज पानी का उपयोग">Water Usage Today</span>
+                            <span class="metric-value" id="waterUsage">145L</span>
+                        </div>
+                        <div class="metric">
+                            <span data-en="Water Savings" data-hi="पानी की बचत">Water Savings</span>
+                            <span class="metric-value" id="waterSavings">60%</span>
+                        </div>
+                        <div class="recommendation">
+                            <div class="recommendation-title" data-en="Next Irrigation" data-hi="अगली सिंचाई">Next Irrigation</div>
+                            <p data-en="Tomorrow 6:00 AM - 180L for Zone A (Pearl Millet)" data-hi="कल सुबह 6:00 बजे - ज़ोन A के लिए 180L (बाजरा)">
+                                Tomorrow 6:00 AM - 180L for Zone A (Pearl Millet)
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ai-predictions" class="tab-content">
+                <div class="card ai-card">
+                    <div class="card-header">
+                        <div class="card-icon">🤖</div>
+                        <h3 class="card-title" data-en="AI-Powered Predictions" data-hi="AI-संचालित भविष्यवाणियां">AI-Powered Predictions</h3>
+                    </div>
+                    
+                    <div class="loading-spinner" id="pyodideLoading">
+                        <div class="spinner"></div>
+                        <p data-en="Loading AI Model..." data-hi="AI मॉडल लोड हो रहा है...">Loading AI Model...</p>
+                    </div>
+                    
+                    <form id="aiPredictionForm" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label" data-en="Farm Size (hectares)" data-hi="खेत का आकार (हेक्टेयर)">Farm Size (hectares)</label>
+                            <input type="number" class="form-input" id="farmSize" value="2.5" min="0.1" step="0.1" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="Current Soil Moisture (%)" data-hi="वर्तमान मिट्टी की नमी (%)">Current Soil Moisture (%)</label>
+                            <input type="number" class="form-input" id="soilMoistureInput" value="35" min="0" max="100" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="Wind Speed (km/h)" data-hi="हवा की गति (km/h)">Wind Speed (km/h)</label>
+                            <input type="number" class="form-input" id="windSpeedInput" value="12" min="0" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="Daily Sunlight Hours" data-hi="दैनिक धूप के घंटे">Daily Sunlight Hours</label>
+                            <input type="number" class="form-input" id="sunlightHours" value="10" min="0" max="24" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="Crop Type" data-hi="फसल का प्रकार">Crop Type</label>
+                            <select class="form-select" id="cropType" required>
+                                <option value="pearl_millet" data-en="Pearl Millet" data-hi="बाजरा">Pearl Millet</option>
+                                <option value="quinoa" data-en="Quinoa" data-hi="क्विनोआ">Quinoa</option>
+                                <option value="date_palm" data-en="Date Palm" data-hi="खजूर">Date Palm</option>
+                                <option value="chickpea" data-en="Chickpea" data-hi="चना">Chickpea</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" data-en="Generate AI Predictions" data-hi="AI भविष्यवाणी उत्पन्न करें">Generate AI Predictions</button>
+                    </form>
+                    
+                    <div id="aiResults" class="ai-results" style="display: none;">
+                        <!-- AI results will be populated here -->
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="predictionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="energy" class="tab-content">
+                <div class="card energy-card">
+                    <div class="card-header">
+                        <div class="card-icon">⚡</div>
+                        <h3 class="card-title" data-en="Sustainable Energy Solutions" data-hi="टिकाऊ ऊर्जा समाधान">Sustainable Energy Solutions</h3>
+                    </div>
+                    
+                    <div class="energy-grid" id="energyOptions">
+                        <div class="energy-option" data-type="solar" onclick="selectEnergyOption('solar')">
+                            <div class="energy-icon">☀️</div>
+                            <div class="energy-name" data-en="Solar Panels" data-hi="सौर पैनल">Solar Panels</div>
+                            <div class="energy-details" data-en="Photovoltaic systems for reliable clean energy" data-hi="विश्वसनीय स्वच्छ ऊर्जा के लिए फोटोवोल्टिक सिस्टम">Photovoltaic systems for reliable clean energy</div>
+                            <div class="energy-metrics">
+                                <div><strong data-en="Efficiency" data-hi="दक्षता">Efficiency</strong>: 22%</div>
+                                <div><strong data-en="Lifespan" data-hi="जीवनकाल">Lifespan</strong>: 25 years</div>
+                                <div><strong data-en="Cost" data-hi="लागत">Cost</strong>: ₹50,000/kW</div>
+                                <div><strong data-en="ROI" data-hi="ROI">ROI</strong>: 6-8 years</div>
+                            </div>
+                        </div>
+                        
+                        <div class="energy-option" data-type="wind" onclick="selectEnergyOption('wind')">
+                            <div class="energy-icon">💨</div>
+                            <div class="energy-name" data-en="Wind Turbines" data-hi="पवन टर्बाइन">Wind Turbines</div>
+                            <div class="energy-details" data-en="Small-scale wind power for consistent generation" data-hi="निरंतर उत्पादन के लिए छोटे पैमाने की पवन ऊर्जा">Small-scale wind power for consistent generation</div>
+                            <div class="energy-metrics">
+                                <div><strong data-en="Min Wind" data-hi="न्यूनतम हवा">Min Wind</strong>: 3 m/s</div>
+                                <div><strong data-en="Lifespan" data-hi="जीवनकाल">Lifespan</strong>: 20 years</div>
+                                <div><strong data-en="Cost" data-hi="लागत">Cost</strong>: ₹80,000/kW</div>
+                                <div><strong data-en="ROI" data-hi="ROI">ROI</strong>: 8-10 years</div>
+                            </div>
+                        </div>
+                        
+                        <div class="energy-option" data-type="nuclear" onclick="selectEnergyOption('nuclear')">
+                            <div class="energy-icon">⚛️</div>
+                            <div class="energy-name" data-en="Micro Nuclear" data-hi="माइक्रो न्यूक्लियर">Micro Nuclear</div>
+                            <div class="energy-details" data-en="Small modular reactors for baseload power" data-hi="बेसलोड पावर के लिए छोटे मॉड्यूलर रिएक्टर">Small modular reactors for baseload power</div>
+                            <div class="energy-metrics">
+                                <div><strong data-en="Capacity" data-hi="क्षमता">Capacity</strong>: 1-10 MW</div>
+                                <div><strong data-en="Lifespan" data-hi="जीवनकाल">Lifespan</strong>: 60 years</div>
+                                <div><strong data-en="Availability" data-hi="उपलब्धता">Availability</strong>: 95%</div>
+                                <div><strong data-en="Status" data-hi="स्थिति">Status</strong>: Future Tech</div>
+                            </div>
+                        </div>
+                        
+                        <div class="energy-option" data-type="hybrid" onclick="selectEnergyOption('hybrid')">
+                            <div class="energy-icon">🔋</div>
+                            <div class="energy-name" data-en="Hybrid System" data-hi="हाइब्रिड सिस्टम">Hybrid System</div>
+                            <div class="energy-details" data-en="Combined solar, wind, and battery storage" data-hi="संयुक्त सौर, पवन और बैटरी भंडारण">Combined solar, wind, and battery storage</div>
+                            <div class="energy-metrics">
+                                <div><strong data-en="Reliability" data-hi="विश्वसनीयता">Reliability</strong>: 99%</div>
+                                <div><strong data-en="Storage" data-hi="भंडारण">Storage</strong>: 24h backup</div>
+                                <div><strong data-en="Cost" data-hi="लागत">Cost</strong>: ₹120,000/kW</div>
+                                <div><strong data-en="ROI" data-hi="ROI">ROI</strong>: 7-9 years</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="energyRecommendation" class="recommendation" style="display: none;">
+                        <div class="recommendation-title" data-en="Energy Recommendation" data-hi="ऊर्जा सिफारिश">Energy Recommendation</div>
+                        <div id="energyRecommendationContent"></div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="energyChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="irrigation" class="tab-content">
+                <div class="card irrigation-card">
+                    <div class="card-header">
+                        <div class="card-icon">💧</div>
+                        <h3 class="card-title" data-en="AI-Powered Irrigation Management" data-hi="AI-संचालित सिंचाई प्रबंधन">AI-Powered Irrigation Management</h3>
+                    </div>
+                    
+                    <div style="height: 400px; width: 100%; margin: 1rem 0;">
+                        <div id="irrigationMap"></div>
+                    </div>
+                    
+                    <div class="irrigation-schedule">
+                        <h4 data-en="Smart Irrigation Schedule" data-hi="स्मार्ट सिंचाई अनुसूची">Smart Irrigation Schedule</h4>
+                        <div class="schedule-grid" id="scheduleGrid">
+                            <!-- Schedule items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="irrigationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div id="crops" class="tab-content">
+                <div class="card crop-card">
+                    <div class="card-header">
+                        <div class="card-icon">🌾</div>
+                        <h3 class="card-title" data-en="Drought-Resistant Crop Database" data-hi="सूखा प्रतिरोधी फसल डेटाबेस">Drought-Resistant Crop Database</h3>
+                    </div>
+                    
+                    <div class="crop-filters">
+                        <div class="form-group">
+                            <label class="form-label" data-en="Filter by Climate Zone" data-hi="जलवायु क्षेत्र के अनुसार फिल्टर करें">Filter by Climate Zone</label>
+                            <select class="form-select" id="climateFilter" onchange="filterCrops()">
+                                <option value="all" data-en="All Zones" data-hi="सभी क्षेत्र">All Zones</option>
+                                <option value="arid" data-en="Arid" data-hi="शुष्क">Arid</option>
+                                <option value="semi-arid" data-en="Semi-Arid" data-hi="अर्ध-शुष्क">Semi-Arid</option>
+                                <option value="hot-desert" data-en="Hot Desert" data-hi="गर्म मरुस्थल">Hot Desert</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="crop-grid" id="cropGrid">
+                        <!-- Crop items will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="subsidies" class="tab-content">
+                <div class="card energy-card">
+                    <div class="card-header">
+                        <div class="card-icon">💰</div>
+                        <h3 class="card-title" data-en="Subsidy Eligibility Checker" data-hi="सब्सिडी पात्रता चेकर">Subsidy Eligibility Checker</h3>
+                    </div>
+                    
+                    <form class="subsidy-form" id="subsidyForm">
+                        <div class="form-group">
+                            <label class="form-label" data-en="Farm Size (hectares)" data-hi="खेत का आकार (हेक्टेयर)">Farm Size (hectares)</label>
+                            <input type="number" class="form-input" id="subsidyFarmSize" placeholder="2.5" min="0.1" step="0.1">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="Annual Income" data-hi="वार्षिक आय">Annual Income</label>
+                            <select class="form-select" id="annualIncome">
+                                <option value="" data-en="Select Income Range" data-hi="आय सीमा चुनें">Select Income Range</option>
+                                <option value="below-200000" data-en="Below ₹2,00,000" data-hi="₹2,00,000 से कम">Below ₹2,00,000</option>
+                                <option value="200000-500000" data-en="₹2,00,000 - ₹5,00,000" data-hi="₹2,00,000 - ₹5,00,000">₹2,00,000 - ₹5,00,000</option>
+                                <option value="500000-1000000" data-en="₹5,00,000 - ₹10,00,000" data-hi="₹5,00,000 - ₹10,00,000">₹5,00,000 - ₹10,00,000</option>
+                                <option value="above-1000000" data-en="Above ₹10,00,000" data-hi="₹10,00,000 से अधिक">Above ₹10,00,000</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="Farmer Category" data-hi="किसान श्रेणी">Farmer Category</label>
+                            <select class="form-select" id="farmerCategory">
+                                <option value="" data-en="Select Category" data-hi="श्रेणी चुनें">Select Category</option>
+                                <option value="small" data-en="Small Farmer" data-hi="छोटे किसान">Small Farmer</option>
+                                <option value="marginal" data-en="Marginal Farmer" data-hi="सीमांत किसान">Marginal Farmer</option>
+                                <option value="medium" data-en="Medium Farmer" data-hi="मध्यम किसान">Medium Farmer</option>
+                                <option value="large" data-en="Large Farmer" data-hi="बड़े किसान">Large Farmer</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="State" data-hi="राज्य">State</label>
+                            <select class="form-select" id="state">
+                                <option value="" data-en="Select State" data-hi="राज्य चुनें">Select State</option>
+                                <option value="rajasthan" data-en="Rajasthan" data-hi="राजस्थान">Rajasthan</option>
+                                <option value="gujarat" data-en="Gujarat" data-hi="गुजरात">Gujarat</option>
+                                <option value="haryana" data-en="Haryana" data-hi="हरियाणा">Haryana</option>
+                                <option value="punjab" data-en="Punjab" data-hi="पंजाब">Punjab</option>
+                                <option value="mp" data-en="Madhya Pradesh" data-hi="मध्य प्रदेश">Madhya Pradesh</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" data-en="Subsidy Type" data-hi="सब्सिडी प्रकार">Subsidy Type</label>
+                            <select class="form-select" id="subsidyType">
+                                <option value="" data-en="Select Subsidy Type" data-hi="सब्सिडी प्रकार चुनें">Select Subsidy Type</option>
+                                <option value="irrigation" data-en="Irrigation Systems" data-hi="सिंचाई सिस्टम">Irrigation Systems</option>
+                                <option value="solar" data-en="Solar Energy" data-hi="सौर ऊर्जा">Solar Energy</option>
+                                <option value="wind" data-en="Wind Energy" data-hi="पवन ऊर्जा">Wind Energy</option>
+                                <option value="organic" data-en="Organic Farming" data-hi="जैविक खेती">Organic Farming</option>
+                                <option value="seeds" data-en="Seeds & Fertilizers" data-hi="बीज और उर्वरक">Seeds & Fertilizers</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" data-en="Check Eligibility" data-hi="पात्रता जांचें">Check Eligibility</button>
+                    </form>
+                    
+                    <div class="eligibility-result" id="eligibilityResult" style="display: none;">
+                        <!-- Results will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="community" class="tab-content">
+                <div class="community-section">
+                    <div class="community-header">
+                        <h3 data-en="Farmer Community Forum" data-hi="किसान समुदाय मंच">Farmer Community Forum</h3>
+                        <button class="btn btn-primary" onclick="showNewPostForm()" data-en="New Post" data-hi="नई पोस्ट">New Post</button>
+                    </div>
+                    
+                    <div class="community-posts" id="communityPosts">
+                        <!-- Posts will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/ai-model.js"></script>
+    <script src="js/energy-solutions.js"></script>
+    <script src="js/irrigation.js"></script>
+    <script src="js/crops.js"></script>
+    <script src="js/subsidies.js"></script>
+    <script src="js/community.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/charts.js"></script>
+</body>
+</html>
+</body>
+</html>
