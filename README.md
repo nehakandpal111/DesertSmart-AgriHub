@@ -141,43 +141,7 @@ DesertSmart AgriHub/
 └── README.md              # This file
 ```
 
-## 🚀 Getting Started
 
-### Prerequisites
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Internet connection for initial load (optional after caching)
-
-### Installation
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/desertsmart-agrihub.git
-   cd desertsmart-agrihub
-   ```
-
-2. **Serve the application**
-   - Using Python: `python -m http.server 8000`
-   - Using Node.js: `npx serve .`
-   - Using any static file server
-
-3. **Access the application**
-   - Open http://localhost:8000 in your browser
-   - Install as PWA for best experience
-
-### Development Setup
-1. **Install dependencies** (if using a build process)
-   ```bash
-   npm install
-   ```
-
-2. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-3. **Build for production**
-   ```bash
-   npm run build
-   ```
 
 ## 🌟 Key Innovations
 
@@ -343,7 +307,6 @@ We welcome contributions from the community! Here's how to get started:
 ### HAVK: Hacking the Desert
 - **Problem Statement**: Addressing water scarcity in desert agriculture
 - **Solution**: AI-powered platform for sustainable desert farming
-- **Impact**: Empowering 10,000+ farmers across arid regions
 - **Technology**: Cutting-edge web technologies for rural accessibility
 
 ### Key Differentiators
@@ -353,31 +316,7 @@ We welcome contributions from the community! Here's how to get started:
 4. **Multilingual Support** - Breaking language barriers
 5. **Mobile-Optimized** - Designed for smartphone users
 
-## 📞 Support & Contact
 
-### Community Support
-- **GitHub Issues**: Report bugs and request features
-- **Community Forum**: Connect with other users and developers
-- **Documentation**: Comprehensive guides and tutorials
-
-### Professional Support
-- **Email**: contact@desertsmart-agrihub.com
-- **Phone**: +91-XXX-XXX-XXXX
-- **Website**: https://desertsmart-agrihub.com
-
-### Social Media
-- **Twitter**: @DesertSmartAgri
-- **LinkedIn**: DesertSmart AgriHub
-- **YouTube**: DesertSmart Tutorials
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-### Open Source Commitment
-- Free for farmers and agricultural communities
-- Open source for transparency and collaboration
-- Commercial licensing available for enterprises
 
 ## 🙏 Acknowledgments
 
@@ -393,11 +332,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Font Awesome** - For iconography
 - **Tailwind CSS** - For design inspiration
 
-### Special Thanks
-- **Beta Testers** - 500+ farmers who tested the platform
-- **Translators** - Community members who helped with localization
-- **Advisors** - Agricultural experts who provided domain knowledge
-- **Developers** - Open source contributors who enhanced the platform
 
 ---
 
@@ -415,13 +349,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 | **Supported Languages** | 2 (English, Hindi) |
 | **Crop Database** | 50+ varieties |
 | **Subsidy Programs** | 25+ schemes |
-| **Community Posts** | 1,000+ |
-| **Active Users** | 10,000+ |
 | **Water Savings** | 60% average |
 | **Yield Improvement** | 25-30% |
 
 ---
-
-*Last updated: January 2024*
 *Version: 1.0.0*
-*Build: Production Ready*
