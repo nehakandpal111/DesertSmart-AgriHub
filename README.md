@@ -50,8 +50,6 @@
 
 **Revolutionary AI-Powered Agricultural Platform for Desert Environments**
 
-Built for the **HAVK: Hacking the Desert** Hackathon, DesertSmart AgriHub empowers farmers in arid and semi-arid regions with cutting-edge technology to optimize water usage, maximize crop yields, and build resilient agricultural communities.
-
 ## 🚀 Features
 
 ### 🌤️ **Smart Weather Integration**
